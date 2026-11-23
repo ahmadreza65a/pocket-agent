@@ -28,7 +28,7 @@ fun AboutScreen() {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text("Pocket Agent", style = MaterialTheme.typography.headlineMedium)
-        Text("Version 0.5", style = MaterialTheme.typography.bodyMedium)
+        Text("Version 0.6", style = MaterialTheme.typography.bodyMedium)
 
         Text(
             "Pocket Agent یک دستیار برنامه‌نویسی هوشمند است که در جیب شما جا می‌گیرد. هدف آن این است که با اتصال به مدل‌های مختلف هوش مصنوعی، ساخت و ویرایش پروژه‌های برنامه‌نویسی را مستقیم از روی گوشی ممکن کند؛ از راه‌اندازی یک وب‌سایت تا مدیریت پروژه‌های آنلاین روی هاست.",

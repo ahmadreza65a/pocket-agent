@@ -7,14 +7,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,15 +24,22 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 var tab by remember { mutableStateOf(0) }
+                val titles = listOf("Chat", "Hosts", "Project", "Settings", "About")
                 Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-                    TabRow(selectedTabIndex = tab) {
-                        Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("Chat") })
-                        Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("Settings") })
-                        Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text("About") })
+                    ScrollableTabRow(selectedTabIndex = tab, edgePadding = 8.dp) {
+                        titles.forEachIndexed { i, title ->
+                            Tab(
+                                selected = tab == i,
+                                onClick = { tab = i },
+                                text = { Text(title) }
+                            )
+                        }
                     }
                     when (tab) {
                         0 -> ChatScreen(store)
-                        1 -> SettingsScreen(store)
+                        1 -> HostsScreen(store)
+                        2 -> ProjectScreen(store)
+                        3 -> SettingsScreen(store)
                         else -> AboutScreen()
                     }
                 }
