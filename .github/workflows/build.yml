@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,7 +22,11 @@ jobs:
           gradle-version: 8.7
       - name: Build debug APK
         run: gradle assembleDebug
-      - uses: actions/upload-artifact@v4
-        with:
-          name: PocketAgent-debug
-          path: app/build/outputs/apk/debug/*.apk
+      - name: Publish APK as release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk PocketAgent.apk
+          gh release create "build-${{ github.run_number }}" PocketAgent.apk \
+            --title "Build ${{ github.run_number }}" \
+            --notes "Automatic build"
