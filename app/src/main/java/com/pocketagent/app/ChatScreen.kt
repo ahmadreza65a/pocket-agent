@@ -66,13 +66,13 @@ fun ChatScreen(store: SecureStore) {
         persist()
         input = ""
         loading = true
-        val system = ProjectStore.systemPrompt(store) + memoryPrompt(context, project)
+        val system = ProjectStore.systemPrompt(store) + memoryPrompt(context, project) + AgentLoop.toolPrompt()
         val history = listOf("system" to system) +
             messages.filter { it.first == "user" || it.first == "assistant" }
         scope.launch {
             val reply = withContext(Dispatchers.IO) {
                 try {
-                    Pair("assistant", ChatApi.send(baseUrl, apiKey, model, history))
+                    Pair("assistant", AgentLoop.run(baseUrl, apiKey, model, history, project?.path ?: ""))
                 } catch (e: Exception) {
                     Pair("error", "Error: ${e.message}")
                 }

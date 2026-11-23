@@ -68,8 +68,6 @@ object ProjectStore {
         val sb = StringBuilder()
         sb.append("You are Pocket Agent, an AI coding assistant inside an Android app. ")
         sb.append("Reply in the language the user writes in. ")
-        sb.append("Current abilities of the app: text chat only. ")
-        sb.append("You cannot yet read or edit files or connect to hosts yourself. ")
         sb.append("Never ask the user to paste passwords into the chat.\n")
         if (p != null) {
             sb.append("Project name: ").append(p.name).append("\n")
