@@ -66,7 +66,7 @@ fun ChatScreen(store: SecureStore) {
         persist()
         input = ""
         loading = true
-        val system = ProjectStore.systemPrompt(store)
+        val system = ProjectStore.systemPrompt(store) + memoryPrompt(context, project)
         val history = listOf("system" to system) +
             messages.filter { it.first == "user" || it.first == "assistant" }
         scope.launch {
@@ -80,6 +80,7 @@ fun ChatScreen(store: SecureStore) {
             messages.add(reply)
             persist()
             loading = false
+            updateMemoryAfterReply(context, project, baseUrl, apiKey, model, text, reply)
         }
     }
 
