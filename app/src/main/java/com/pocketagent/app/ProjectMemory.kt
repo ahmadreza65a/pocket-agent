@@ -10,10 +10,9 @@ object ProjectMemory {
         "You maintain PROJECT_MEMORY.md, the long-term memory of a software project. " +
         "You receive the current file and the latest chat exchange. " +
         "Return the FULL updated file in Markdown and nothing else, without code fences. " +
-        "Keep these sections: # Project Memory, ## Done, ## Planned, ## Access, ## Agent capabilities and limits. " +
+        "Keep these sections: # Project Memory, ## Done, ## Planned, ## Access. Never write about what the agent can or cannot do. " +
         "Add only facts that appear in the chat and never invent anything. " +
         "Never store passwords or API keys. " +
-        "Agent abilities now: it can list and read files inside the project folder; it cannot write files or connect to hosts yet. " +
         "Merge duplicates and keep the file under 60 lines. " +
         "Write in the same language the user writes in."
 

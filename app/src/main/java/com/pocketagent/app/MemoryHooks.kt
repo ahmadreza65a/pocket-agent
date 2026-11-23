@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 
 fun memoryPrompt(ctx: Context, p: Project?): String {
     if (p == null) return ""
-    val mem = ProjectMemory.read(ctx, p)
+    val mem = ProjectMemory.read(ctx, p).substringBefore("## Agent capabilities").trim()
     if (mem.isBlank()) return ""
     return "\nLong-term project memory (PROJECT_MEMORY.md). Keep it in mind:\n" + mem + "\n"
 }
