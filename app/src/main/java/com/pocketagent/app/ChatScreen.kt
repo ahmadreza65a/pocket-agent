@@ -1,24 +1,14 @@
 package com.pocketagent.app
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -27,46 +17,39 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun MessageBubble(role: String, text: String) {
-    val isUser = role == "user"
-    val color = when (role) {
-        "user" -> MaterialTheme.colorScheme.primaryContainer
-        "error" -> MaterialTheme.colorScheme.errorContainer
-        else -> MaterialTheme.colorScheme.secondaryContainer
-    }
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
-    ) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = color),
-            modifier = Modifier.widthIn(max = 320.dp)
-        ) {
-            SelectionContainer {
-                Text(text, modifier = Modifier.padding(12.dp))
-            }
-        }
-    }
-}
-
-@Composable
 fun ChatScreen(store: SecureStore) {
-    val messages = remember { mutableStateListOf<Pair<String, String>>() }
+    val context = LocalContext.current
+    val project = ProjectStore.active(store)
+    val projectId = project?.id ?: "none"
+    val key = "active_chat_" + projectId
+    var chatId by remember { mutableStateOf(store.get(key).ifEmpty { ChatStore.newId() }) }
+    val messages = remember {
+        mutableStateListOf<Pair<String, String>>().apply { addAll(ChatStore.load(context, projectId, chatId)) }
+    }
     var input by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
+    var showHistory by remember { mutableStateOf(false) }
+    var chats by remember { mutableStateOf(ChatStore.list(context, projectId)) }
     val scope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
 
-    LaunchedEffect(messages.size, loading) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
-        }
+    fun persist() {
+        ChatStore.save(context, projectId, chatId, messages.toList())
+        store.put(key, chatId)
+    }
+
+    fun openChat(id: String) {
+        chatId = id
+        messages.clear()
+        messages.addAll(ChatStore.load(context, projectId, id))
+        store.put(key, id)
+        showHistory = false
     }
 
     fun send() {
@@ -80,61 +63,55 @@ fun ChatScreen(store: SecureStore) {
             return
         }
         messages.add("user" to text)
+        persist()
         input = ""
         loading = true
-        val history = messages
-            .filter { it.first == "user" || it.first == "assistant" }
-            .toList()
+        val system = ProjectStore.systemPrompt(store)
+        val history = listOf("system" to system) +
+            messages.filter { it.first == "user" || it.first == "assistant" }
         scope.launch {
             val reply = withContext(Dispatchers.IO) {
                 try {
-                    Pair("assistant", ChatApi.send(baseUrl, apiKey, model, listOf("system" to ProjectStore.systemPrompt(store)) + history))
+                    Pair("assistant", ChatApi.send(baseUrl, apiKey, model, history))
                 } catch (e: Exception) {
                     Pair("error", "Error: ${e.message}")
                 }
             }
             messages.add(reply)
+            persist()
             loading = false
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            if (messages.isEmpty()) {
-                Text(
-                    "Send a message to start chatting.",
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-            androidx.compose.foundation.lazy.LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+    if (showHistory) {
+        HistoryList(
+            chats = chats,
+            onOpen = { openChat(it) },
+            onDelete = { id ->
+                ChatStore.delete(context, projectId, id)
+                chats = ChatStore.list(context, projectId)
+                if (id == chatId) {
+                    openChat(ChatStore.newId())
+                    showHistory = true
+                }
+            },
+            onBack = { showHistory = false }
+        )
+    } else {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(messages.size) { i ->
-                    val (role, text) = messages[i]
-                    MessageBubble(role, text)
-                }
-                if (loading) {
-                    item { Text("...") }
-                }
+                Text(project?.name ?: "No project", modifier = Modifier.weight(1f))
+                OutlinedButton(enabled = !loading, onClick = { openChat(ChatStore.newId()) }) { Text("New") }
+                OutlinedButton(enabled = !loading, onClick = {
+                    chats = ChatStore.list(context, projectId)
+                    showHistory = true
+                }) { Text("History") }
             }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedTextField(
-                value = input,
-                onValueChange = { input = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Message") },
-                maxLines = 4
-            )
-            Button(onClick = { send() }, enabled = !loading) {
-                Text("Send")
-            }
+            ChatBody(messages, loading, input, { input = it }, { send() }, Modifier.weight(1f))
         }
     }
 }
