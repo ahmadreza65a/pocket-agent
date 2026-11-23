@@ -25,10 +25,15 @@ class MainActivity : ComponentActivity() {
                 var tab by remember { mutableStateOf(0) }
                 Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
                     TabRow(selectedTabIndex = tab) {
-                        Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("Settings") })
-                        Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("About") })
+                        Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("Chat") })
+                        Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("Settings") })
+                        Tab(selected = tab == 2, onClick = { tab = 2 }, text = { Text("About") })
                     }
-                    if (tab == 0) SettingsScreen(store) else AboutScreen()
+                    when (tab) {
+                        0 -> ChatScreen(store)
+                        1 -> SettingsScreen(store)
+                        else -> AboutScreen()
+                    }
                 }
             }
         }
