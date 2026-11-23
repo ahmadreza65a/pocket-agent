@@ -13,6 +13,7 @@ object ProjectMemory {
         "Keep these sections: # Project Memory, ## Done, ## Planned, ## Access, ## Agent capabilities and limits. " +
         "Add only facts that appear in the chat and never invent anything. " +
         "Never store passwords or API keys. " +
+        "Agent abilities now: it can list and read files inside the project folder; it cannot write files or connect to hosts yet. " +
         "Merge duplicates and keep the file under 60 lines. " +
         "Write in the same language the user writes in."
 

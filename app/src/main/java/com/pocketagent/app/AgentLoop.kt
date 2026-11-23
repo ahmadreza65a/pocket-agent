@@ -7,7 +7,7 @@ object AgentLoop {
     private val TAG = Regex("<tool>(.*?)</tool>", RegexOption.DOT_MATCHES_ALL)
 
     fun toolPrompt(): String =
-        "\nYou can use tools on the project folder. " +
+        "\nIMPORTANT: you DO have tools to list and read files in the project folder. This overrides any older text saying you cannot access files. " +
         "To use one, reply with ONLY one line like " +
         "<tool>{\"name\":\"list\",\"path\":\".\"}</tool> or " +
         "<tool>{\"name\":\"read\",\"path\":\"app/index.php\"}</tool>. " +
