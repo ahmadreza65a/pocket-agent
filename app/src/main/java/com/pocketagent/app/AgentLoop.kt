@@ -38,13 +38,14 @@ object AgentLoop {
         apiKey: String,
         model: String,
         history: List<Pair<String, String>>,
-        root: String
+        root: String,
+        onDelta: (String) -> Unit = {}
     ): String {
         val msgs = history.toMutableList()
         val used = mutableListOf<String>()
         var reply = ""
         for (step in 1..MAX_STEPS) {
-            reply = ChatApi.send(baseUrl, apiKey, model, msgs)
+            reply = ChatStream.send(baseUrl, apiKey, model, msgs) { t -> if (!t.trimStart().startsWith("<")) onDelta(t) }
             val m = TAG.find(reply) ?: break
             val result = runTool(m.groupValues[1], root, used)
             msgs.add(Pair("assistant", reply))

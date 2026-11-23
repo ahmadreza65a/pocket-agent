@@ -70,14 +70,16 @@ fun ChatScreen(store: SecureStore) {
         val history = listOf("system" to system) +
             messages.filter { it.first == "user" || it.first == "assistant" }
         scope.launch {
+            messages.add("assistant" to "")
+            val idx = messages.size - 1
             val reply = withContext(Dispatchers.IO) {
                 try {
-                    Pair("assistant", AgentLoop.run(baseUrl, apiKey, model, history, project?.path ?: ""))
+                    Pair("assistant", AgentLoop.run(baseUrl, apiKey, model, history, project?.path ?: "") { t -> scope.launch { if (idx < messages.size) messages[idx] = "assistant" to t } })
                 } catch (e: Exception) {
                     Pair("error", "Error: ${e.message}")
                 }
             }
-            messages.add(reply)
+            messages[idx] = reply
             persist()
             loading = false
             updateMemoryAfterReply(context, project, baseUrl, apiKey, model, text, reply)
