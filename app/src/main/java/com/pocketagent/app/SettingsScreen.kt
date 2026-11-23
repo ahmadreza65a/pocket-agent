@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -26,6 +25,7 @@ fun SettingsScreen(store: SecureStore) {
     var baseUrl by remember { mutableStateOf(store.get("base_url")) }
     var apiKey by remember { mutableStateOf(store.get("api_key")) }
     var model by remember { mutableStateOf(store.get("model")) }
+    var globalDesc by remember { mutableStateOf(store.get("global_desc")) }
     var status by remember { mutableStateOf("") }
 
     Column(
@@ -62,11 +62,20 @@ fun SettingsScreen(store: SecureStore) {
             modifier = Modifier.fillMaxWidth()
         )
 
+        OutlinedTextField(
+            value = globalDesc,
+            onValueChange = { globalDesc = it },
+            label = { Text("Global description (used when a project has none)") },
+            minLines = 6,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         Button(
             onClick = {
                 store.put("base_url", baseUrl.trim())
                 store.put("api_key", apiKey.trim())
                 store.put("model", model.trim())
+                store.put("global_desc", globalDesc.trim())
                 status = "Saved"
             }
         ) {

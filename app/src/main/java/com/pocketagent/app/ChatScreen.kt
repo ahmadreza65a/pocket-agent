@@ -88,7 +88,7 @@ fun ChatScreen(store: SecureStore) {
         scope.launch {
             val reply = withContext(Dispatchers.IO) {
                 try {
-                    Pair("assistant", ChatApi.send(baseUrl, apiKey, model, history))
+                    Pair("assistant", ChatApi.send(baseUrl, apiKey, model, listOf("system" to ProjectStore.systemPrompt(store)) + history))
                 } catch (e: Exception) {
                     Pair("error", "Error: ${e.message}")
                 }
